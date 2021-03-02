@@ -104,4 +104,4 @@
 
 참고자료 : https://www.devpools.kr/2017/02/05/%EC%B4%88%EB%B3%B4%EC%9A%A9-git-%EB%90%98%EB%8F%8C%EB%A6%AC%EA%B8%B0-reset-revert/
 
-황성준 바보 
+IQ 140 실4 유저 신유빈
