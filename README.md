@@ -1,6 +1,6 @@
 # chatBOT project - ashe
 
-성준님 오늘부터 토익공부 하세여!!!
+성준님 토익공부 하세여!!!
 
 
 https://github.com/8eatles/messanger-bot-scripts/blob/master/teaching-learning-bot/bot.js
