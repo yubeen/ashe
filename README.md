@@ -14,3 +14,10 @@ https://github.com/8eatles/messanger-bot-scripts/blob/master/teaching-learning-b
 참고해서 파이썬으로 만들어봅시당.
 
 과제내용은 이 밑으로 병합하시면됩니당
+
+# 아펠리오스 봇
+
+- 아펠리오스는 독에 중독되어 말을하지 못하는 챔피언입니다.
+
+1차 목표 ) 어떤 카카오톡 메세지를 보내도 ... 을 답변합니다.
+2차 목표 ) 알룬이 가끔 대답해줘요...
