@@ -23,7 +23,7 @@ const GameTypes = [
 ];
 
 // 매일 AlarmTime에 들어있는 값의 정시에 알람. (파티가 있을 경우)
-const TodayPartyAlarmTime = [16, 19];
+const TodayPartyAlarmTime = [17];
 const PartyPreAlaramMinute = 30;
 
 var rooms = [];
@@ -615,11 +615,11 @@ const CommandList =
     '/파티참 파티이름' : JoinPartyCommand,
     '/파티탈퇴 파티이름' : WithdrawPartyCommand,
     '/파티시간변경 파티이름 시간(0000~2359)' : ModifyPartyTimeCommand,
-    '/파티강퇴 파티이름 파티원번호' : KickMemberCommand,
-    '/파티대타 파티이름 파티원번호' : ReplaceMemberCommand,
-    '/정기파티생성 파티이름 시간(0000~2359)' : RegisterPeriodicPartyCommand,
-    '/정기파티삭제 파티이름' : UnregisterPeriodicPartyCommand,
-    '/카밀출력 파티이름' : PrintCamilleCommand,
+    // '/파티강퇴 파티이름 파티원번호' : KickMemberCommand,
+    // '/파티대타 파티이름 파티원번호' : ReplaceMemberCommand,
+    // '/정기파티생성 파티이름 시간(0000~2359)' : RegisterPeriodicPartyCommand,
+    // '/정기파티삭제 파티이름' : UnregisterPeriodicPartyCommand,
+    // '/카밀출력 파티이름' : PrintCamilleCommand,
 }
 
 function response(roomName, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
