@@ -17,6 +17,7 @@ const GameTypes = [
     ['내전', 10],
     ['스크림', 5],
     ['칼바람', 5],
+    ['데이트', 2],
     ['자랭', 5],
     ['솔랭', 2],
     ['듀오', 2],
@@ -95,7 +96,7 @@ Room.prototype.StartThread = function()
                     Thread.sleep(3000);
 
                     this.ClearEndedParty();
-                    this.CheckPeriodicParty();
+                    // this.CheckPeriodicParty();
                     this.CheckPreAlarmNotice();
                     this.CheckTodayPartyNotice();
                 }
@@ -129,7 +130,7 @@ Room.prototype.GetPartyListMsg = function()
     }
     else
     {
-        msg = '만들어진 파티가 없어요 ㅠ_ㅠ';
+        msg = '파티X';
     }
 
     return msg;
@@ -146,25 +147,25 @@ Room.prototype.ClearEndedParty = function()
     }
 }
 
-Room.prototype.CheckPeriodicParty = function()
-{
-    const now = new Date();
-    if (now.getDay() == this.today)
-        return;
+// Room.prototype.CheckPeriodicParty = function()
+// {
+//     const now = new Date();
+//     if (now.getDay() == this.today)
+//         return;
 
-    this.today = now.getDay();
+//     this.today = now.getDay();
 
-    this.periodicParty.forEach(party => {
-        const createPartyCommand = new CreatePartyCommand(party.name, party.time);
-        createPartyCommand.SetTargetRoom(this);
+//     this.periodicParty.forEach(party => {
+//         const createPartyCommand = new CreatePartyCommand(party.name, party.time);
+//         createPartyCommand.SetTargetRoom(this);
 
-        const message = createPartyCommand.Execute();
-        if (!createPartyCommand.isSucceed)
-        {
-            Api.replyRoom(this.roomName, '정기 내전 등록 실패! - ' + message);
-        }
-    });
-}
+//         const message = createPartyCommand.Execute();
+//         if (!createPartyCommand.isSucceed)
+//         {
+//             Api.replyRoom(this.roomName, '정기 내전 등록 실패! - ' + message);
+//         }
+//     });
+// }
 
 Room.prototype.CheckPreAlarmNotice = function()
 {
@@ -197,10 +198,6 @@ Room.prototype.CheckPreAlarmNotice = function()
             {
                 msg += '파티가 ' + PartyPreAlaramMinute + '분 뒤에 시작됩니다! 준비해주세요~';
             }
-            else
-            {
-                msg += '자리가 남는 파티가 있어요~ 참가해보시면 어떨까요? (/파티참가 ' + party.name+ ')';
-            }
             Api.replyRoom(this.roomName, msg);
         }
 
@@ -223,11 +220,11 @@ Room.prototype.CheckTodayPartyNotice = function()
             let message;
             if (this.parties.length == 0)
             {
-                message = '오늘의 파티가 없어요 ㅠ.ㅠ 파티를 만들어주세요!';
+                message = '오늘 파티가 없어요...';
             }
             else
             {
-                message = '☆★ 오늘의 파티 ★☆\n';
+                message = '- 오늘의 파티 -';
                 message += this.GetPartyListMsg();
             }
 
@@ -485,107 +482,6 @@ KickMemberCommand.prototype.Execute = function()
     return purgeeName + '님이 [' + partyName + ']에서 강퇴되셨어요.';
 }
 
-// ReplaceMemberCommand Class
-function ReplaceMemberCommand(partyName, replaceNumber)
-{
-    CommandBase.call(this);
-
-    this.partyName = partyName;
-    this.replaceNumber = replaceNumber;
-}
-
-ReplaceMemberCommand.prototype = Object.create(CommandBase.prototype);
-ReplaceMemberCommand.prototype.constructor = ReplaceMemberCommand;
-ReplaceMemberCommand.prototype.Execute = function()
-{
-    const partyName = this.partyName;
-    const replaceNumber = this.replaceNumber;
-    if (!replaceNumber.match(/[0-9]/))
-        return '대신 할 번호를 입력해주세요.';
-
-    const party = this.targetRoom.FindPartyByName(partyName);
-    if (!party)
-        return '[' + partyName + ']는 존재하지 않아요!';
-
-    if (replaceNumber > party.members.length)
-        return '없는 번호에요.';
-
-    if (party.members.indexOf(this.sender) >= 0)
-        return '이미 참가 중이에요!';
-
-    if (!partyName.includes('내전'))
-        return '파티 대타 기능은 내전에만 사용할 수 있어요.';
-
-    const withdrawLimitDate = new Date();
-    withdrawLimitDate.setHours(party.time.getHours());
-    withdrawLimitDate.setMinutes(party.time.getMinutes() - PartyPreAlaramMinute);
-
-    if (withdrawLimitDate >= party.time)
-        return '파티대타는 내전 시작 ' + PartyPreAlaramMinute + '분 전부터 사용할 수 있는 명령어입니다.';
-
-    const replaced = party.members.splice(replaceNumber - 1, 1);
-    party.members.push(this.sender);
-
-    this.isSucceed = true;
-    return ConvertPartyToMsg(party) + '\n\n' + GetNameFromKakaoName(this.sender) + '님이 ' + replaced + '님 대신 참가하였습니다!';
-}
-
-// RegisterPeriodicPartyCommand Class
-function RegisterPeriodicPartyCommand(partyName, partyTime)
-{
-    CommandBase.call(this);
-
-    this.partyName = partyName;
-    this.partyTime = partyTime;
-}
-
-RegisterPeriodicPartyCommand.prototype = Object.create(CommandBase.prototype);
-RegisterPeriodicPartyCommand.prototype.constructor = RegisterPeriodicPartyCommand;
-RegisterPeriodicPartyCommand.prototype.Execute = function()
-{
-    const partyName = this.partyName;
-    const partyTime = this.partyTime;
-
-    const isExist = this.targetRoom.periodicParty.find(function(periodicParty) {
-        return periodicParty.name == partyName;
-    });
-
-    if (isExist)
-        return '[' + partyName + ']는 이미 등록된 정기 파티입니다!';
-
-    this.targetRoom.periodicParty.push({name: partyName, time: partyTime});
-
-    this.isSucceed = true;
-
-    const convertedDate = ConvertCustomTimeToDate(partyTime);
-    const convertedDateStr = ConvertDateToStr(convertedDate);
-    return '매일 ' + convertedDateStr + '에 ' + partyName + ' 파티가 생성됩니다.';
-}
-
-// UnregisterPeriodicPartyCommand Class
-function UnregisterPeriodicPartyCommand(partyName, partyTime)
-{
-    CommandBase.call(this);
-
-    this.partyName = partyName;
-}
-
-UnregisterPeriodicPartyCommand.prototype = Object.create(CommandBase.prototype);
-UnregisterPeriodicPartyCommand.prototype.constructor = UnregisterPeriodicPartyCommand;
-UnregisterPeriodicPartyCommand.prototype.Execute = function()
-{
-    const partyName = this.partyName;
-
-    const index = this.targetRoom.periodicParty.findIndex(periodicParty => periodicParty.name == partyName);
-    if (index < 0)
-        return '[' + partyName + ']는 등록되지 않은 정기 파티입니다!';
-
-    this.targetRoom.periodicParty.splice(index, 1);
-
-    this.isSucceed = true;
-    return '정기 파티 [' + partyName + ']가 삭제 되었습니다.';
-}
-
 // PrintCamilleCommand Class
 function PrintCamilleCommand(partyName)
 {
@@ -594,35 +490,19 @@ function PrintCamilleCommand(partyName)
     this.partyName = partyName;
 }
 
-PrintCamilleCommand.prototype = Object.create(CommandBase.prototype);
-PrintCamilleCommand.prototype.constructor = PrintCamilleCommand;
-PrintCamilleCommand.prototype.Execute = function()
-{
-    const partyName = this.partyName;
-    const party = this.targetRoom.FindPartyByName(partyName);
-    if (!party)
-        return '[' + partyName + ']는 존재하지 않아요!';
-
-    this.isSucceed = true;
-    return ConvertPartyToCamilleCommand(party);
-}
-
 const CommandList =
 {
-    '/사용법' : HelpCommand,
-    '/파티리스트' : PartyListCommand,
-    '/파티생성 파티이름 시간(0000~2359)' : CreatePartyCommand,
-    '/파티참 파티이름' : JoinPartyCommand,
-    '/파티탈퇴 파티이름' : WithdrawPartyCommand,
-    '/파티시간변경 파티이름 시간(0000~2359)' : ModifyPartyTimeCommand,
-    // '/파티강퇴 파티이름 파티원번호' : KickMemberCommand,
-    // '/파티대타 파티이름 파티원번호' : ReplaceMemberCommand,
-    // '/정기파티생성 파티이름 시간(0000~2359)' : RegisterPeriodicPartyCommand,
-    // '/정기파티삭제 파티이름' : UnregisterPeriodicPartyCommand,
-    // '/카밀출력 파티이름' : PrintCamilleCommand,
+    '매콤봇' : HelpCommand,
+    ':파티리스트' : PartyListCommand,
+    ':파티생성 파티이름 0000~2359' : CreatePartyCommand,
+    ':파티참 파티이름' : JoinPartyCommand,
+    ':파티탈퇴 파티이름' : WithdrawPartyCommand,
+    ':파티시간변경 파티이름 0000~2359' : ModifyPartyTimeCommand,
+    ':파티강퇴 파티이름 파티원번호' : KickMemberCommand,
 }
 
-function response(roomName, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId){
+function response(roomName, msg, sender, isGroupChat, replier, ImageDB, packageName, threadId)
+{
     let responseMsg = '';
     let commandUsage = '';
     try
@@ -691,6 +571,12 @@ function response(roomName, msg, sender, isGroupChat, replier, ImageDB, packageN
             replier.reply(responseMsg);
 
         DataBase.setDataBase(DBPrefix + room.roomName, JSON.stringify(room, JSON.replacer));
+
+        if (msg == '매콤아')
+        {
+            responseMsg = '?';
+        }
+
     }
     catch (error)
     {
@@ -761,16 +647,6 @@ function ConvertPartyToMsg(party)
         msg += '\n' + (i + 1) + '. ' + GetNameFromKakaoName(memberName);
     }
     return msg;
-}
-
-function ConvertPartyToCamilleCommand(party)
-{
-    let msg = '/자동매칭 ';
-    party.members.forEach(memberName => {
-        msg += GetNameFromKakaoName(memberName) + ',';
-    });
-
-    return msg.slice(0, -1);
 }
 
 function ConvertDateToStr(date)
